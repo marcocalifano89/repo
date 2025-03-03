@@ -1,3 +1,7 @@
 streamlit
-openai
-python-dotenv  # Se lo usi per gestire variabili d'ambiente
+openai>=1.0.0
+python-dotenv
+pillow
+pytesseract
+numpy
+opencv-python-headless
