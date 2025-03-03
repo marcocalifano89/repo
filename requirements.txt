@@ -1,0 +1,3 @@
+streamlit
+openai
+python-dotenv  # Se lo usi per gestire variabili d'ambiente
