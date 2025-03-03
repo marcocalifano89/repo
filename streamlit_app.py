@@ -19,11 +19,14 @@ def chat_with_gpt(prompt, chat_history):
         stream=True  # Streaming della risposta
     )
 
-    full_response = ""
+    full_response = ""  # Buffer della risposta
     for chunk in response:
-        if chunk.choices:
-            full_response += chunk.choices[0].delta.content or ""
-            yield full_response
+        if chunk.choices and chunk.choices[0].delta.content:
+            text = chunk.choices[0].delta.content
+            full_response += text  # Accumula la risposta
+            yield text  # Restituisce solo il nuovo testo
+
+    yield "\n"  # Assicura una fine pulita della risposta
 
 # Configura la UI di Streamlit
 st.set_page_config(page_title="Chatbot con OpenAI", page_icon="💬")
@@ -48,8 +51,12 @@ if st.button("Invia") and user_input:
     st.session_state.chat_history.append({"role": "user", "content": user_input})
 
     # Streaming della risposta
+    full_response = ""
     with st.chat_message("assistant"):
         response_stream = chat_with_gpt(user_input, st.session_state.chat_history)
-        full_response = st.write_stream(response_stream)
+        response_container = st.empty()  # Crea un contenitore per aggiornare il testo
+        for text in response_stream:
+            full_response += text
+            response_container.markdown(full_response)  # Aggiorna la risposta man mano
 
     st.session_state.chat_history.append({"role": "assistant", "content": full_response})
