@@ -3,27 +3,29 @@ import openai
 import os
 from dotenv import load_dotenv
 
-# Carica la chiave API da .env
+# Carica le variabili d'ambiente
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Funzione per chiamare OpenAI con streaming
+# Inizializza il client OpenAI con l'ultima sintassi
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# Funzione per la chat con OpenAI (streaming attivato)
 def chat_with_gpt(prompt, chat_history):
     messages = chat_history + [{"role": "user", "content": prompt}]
     
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=messages,
-        stream=True  # Attiva lo streaming della risposta
+        stream=True  # Streaming della risposta
     )
 
     full_response = ""
     for chunk in response:
-        if "choices" in chunk and len(chunk["choices"]) > 0:
-            full_response += chunk["choices"][0]["delta"].get("content", "")
-            yield full_response  # Restituisce la risposta in streaming
+        if chunk.choices:
+            full_response += chunk.choices[0].delta.content or ""
+            yield full_response
 
-# Interfaccia Streamlit
+# Configura la UI di Streamlit
 st.set_page_config(page_title="Chatbot con OpenAI", page_icon="💬")
 
 st.title("💬 Chatbot con GPT")
@@ -39,7 +41,7 @@ for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# Area di input utente
+# Input dell'utente
 user_input = st.text_input("Scrivi un messaggio:", "")
 
 if st.button("Invia") and user_input:
